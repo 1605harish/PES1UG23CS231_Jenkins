@@ -22,8 +22,8 @@ pipeline {
                 docker run -d --name backend1 --network app-network backend-app
                 docker run -d --name backend2 --network app-network backend-app
 
-                # give containers a moment to start
-                sleep 2
+                # wait for services + docker DNS to be ready
+                sleep 5
                 '''
             }
         }
@@ -34,17 +34,21 @@ pipeline {
                 set -e
                 docker rm -f nginx-lb || true
 
-                # If port 80 is already in use, change this to -p 8081:80 and browse http://localhost:8081
+                # If port 80 is busy, change to: -p 8081:80 and browse http://localhost:8081
                 docker run -d \
                   --name nginx-lb \
                   --network app-network \
                   -p 80:80 \
                   nginx
 
-                # give nginx a moment to start before copying config
-                sleep 5
+                # wait for nginx container start
+                sleep 3
+
                 docker cp nginx/default.conf nginx-lb:/etc/nginx/conf.d/default.conf
+
+                # wait before config test to avoid DNS race
                 sleep 2
+
                 docker exec nginx-lb nginx -t
                 docker exec nginx-lb nginx -s reload
                 '''
