@@ -42,9 +42,9 @@ pipeline {
                   nginx
 
                 # give nginx a moment to start before copying config
-                sleep 2
-
+                sleep 5
                 docker cp nginx/default.conf nginx-lb:/etc/nginx/conf.d/default.conf
+                sleep 2
                 docker exec nginx-lb nginx -t
                 docker exec nginx-lb nginx -s reload
                 '''
